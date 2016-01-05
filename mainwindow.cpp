@@ -332,16 +332,8 @@ void MainWindow::selectType(const QString &srcPath, const QString &destPath,cons
     }
     else if(media.keys().indexOf(work_sheet_name) != -1){
         if(work_sheet_name.compare("media") == 0){
-
             QString mediaInsertSql = QString("INSERT IGNORE INTO `media` "
-                                            " (`mid`, `serial_id`, `name`, `language`, `type`, "
-                                            " `singer`, `artist_sid_1`, `artist_sid_2`, `pinyin`, `header`, "
-                                            " `head`, `words`, `path`, `lyric`, `original_track`, "
-                                            " `sound_track`, `start_volume_1`, `start_volume_2`, `prelude`, `effect`, "
-                                            " `version`, `create_time`, `stars`, `hot`, `count`, "
-                                            " `enabled`, `black`, `match`, `update_time`, `resolution`, "
-                                            " `quality`, `source`, `rhythm`, `pitch`, `info`, `lang_part`, `desc_count` "
-                                            " ) VALUES ");
+                                             "(%1) VALUES ").arg(linkSql(fieldList));
             insertSqlStr(out, mediaInsertSql);
             m_add += rowList.count() - 1;
         }else if(work_sheet_name.compare("media_update_field") == 0
@@ -367,13 +359,8 @@ void MainWindow::selectType(const QString &srcPath, const QString &destPath,cons
     }
     else if(mp3.keys().indexOf(work_sheet_name) != -1){
         if(work_sheet_name.compare("mp3") == 0){
-
             QString mp3InsertSql = QString("INSERT IGNORE INTO `media_music` "
-                                            " (`mmid`, `serial_id`, `name`, `singer`, `artist_sid_1`, "
-                                            " `artist_sid_2`, `pinyin`, `header`, `head`, `words`, "
-                                            " `path`, `lyric`, `prelude`, `create_time`, `count`, "
-                                            " `enabled`, `update_time`, `has_lyric` "
-                                            " ) VALUES ");
+                                           "(%1) VALUES ").arg(linkSql(fieldList));
             insertSqlStr(out, mp3InsertSql);
             p3_add += rowList.count() - 1;
         }else if(work_sheet_name.compare("mp3_update_field") == 0
@@ -398,11 +385,13 @@ void MainWindow::selectType(const QString &srcPath, const QString &destPath,cons
     else if(actor.keys().indexOf(work_sheet_name) != -1){
         if(work_sheet_name.compare("actor") == 0){
 
+//            QString actorInsertSql = QString("INSERT IGNORE INTO `actor` "
+//                                           " (`sid`, `serial_id`, `name`,  `nation`, `sex`, "
+//                                           " `pinyin`, `header`, `head`, `words`, `song_count`, "
+//                                           " `stars`,`count`, `order`, `enabled`, `black`, "
+//                                           " `info`) VALUES ");
             QString actorInsertSql = QString("INSERT IGNORE INTO `actor` "
-                                           " (`sid`, `serial_id`, `name`,  `nation`, `sex`, "
-                                           " `pinyin`, `header`, `head`, `words`, `song_count`, "
-                                           " `stars`,`count`, `order`, `enabled`, `black`, "
-                                           " `info`) VALUES ");
+                                           " (%1) VALUES ").arg(linkSql(fieldList));
             insertSqlStr(out, actorInsertSql);
             a_add += rowList.count() - 1;
         } else if(work_sheet_name.compare("actor_update_field") == 0
@@ -428,16 +417,19 @@ void MainWindow::selectType(const QString &srcPath, const QString &destPath,cons
         if(work_sheet_name.compare("songlist") == 0){
 
             out << QString("DELETE FROM `songlist`;\n");
+//            QString insertSql = QString("INSERT IGNORE INTO `songlist` "
+//                                        " (`lid`, `serial_id`, `title`, `image`, `type`, `count`, `special`) VALUES "
+//                                        );
             QString insertSql = QString("INSERT IGNORE INTO `songlist` "
-                                        " (`lid`, `serial_id`, `title`, `image`, `type`, `count`, `special`) VALUES "
-                                        );
+                                        " (%1) VALUES ").arg(linkSql(fieldList));
             insertFMSqlStr(out, insertSql);
             other_count += rowList.count() - 1;
         }
         else if(work_sheet_name.compare("songlist_detail") == 0){
 
             out << QString("DELETE FROM `songlist_detail`;\n");
-            QString insertSql = QString(" INSERT IGNORE INTO `songlist_detail`(`lid`, `index`, `mid`) VALUES ");
+            QString insertSql = QString(" INSERT IGNORE INTO `songlist_detail`"
+                                        "(%1) VALUES ").arg(linkSql(fieldList));
             insertSqlStr(out, insertSql);
             other_count += rowList.count() - 1;
         }
@@ -448,7 +440,7 @@ void MainWindow::selectType(const QString &srcPath, const QString &destPath,cons
 
         QString deleteSql = QString("DELETE FROM `media_list` where `type` = '%1';\n").arg(work_sheet_name);
         out << deleteSql;
-        QString insertSql = QString("INSERT IGNORE INTO `media_list`(`type`, `index`, `mid`) VALUES ");
+        QString insertSql = QString("INSERT IGNORE INTO `media_list`(%1) VALUES ").arg(linkSql(fieldList));
         insertSqlStr(out, insertSql);
         other_count += rowList.count() - 1;
 
@@ -471,6 +463,19 @@ void MainWindow::selectType(const QString &srcPath, const QString &destPath,cons
 
     out << "\n";
     file.close();
+}
+
+QString MainWindow::linkSql(QStringList firstRow)
+{
+    QString retStr;
+    for (int i=0; i<firstRow.size(); i++) {
+        QString str = firstRow.at(i);
+        retStr.append(QString("`%1`").arg(str));
+        if (i != firstRow.size() - 1)
+            retStr.append(", ");
+    }
+
+    return retStr;
 }
 
 void MainWindow::match(QTextStream &out)
@@ -503,8 +508,6 @@ void MainWindow::match(QTextStream &out)
 
         ui->progressBar->setValue(i+1);
     }
-
-    updatePath();
 }
 
 QStringList MainWindow::splitCSVLine(const QString &lineStr)
@@ -556,22 +559,6 @@ QStringList MainWindow::splitCSVLine(const QString &lineStr)
     return qMove(strList);
 }
 
-void MainWindow::updatePath()
-{
-//    QString outPath = ui->lineEdit->text();
-//    if (outPath.indexOf(".xlsx") != -1) {
-
-//        outPath.replace(".xlsx", ".sql");
-//    }
-
-//    if (outPath.indexOf(".csv") != -1){
-
-//        outPath.replace(".csv", ".sql");
-//    }
-
-//    ui->lineEdit->setText(outPath);
-}
-
 void MainWindow::insertSqlStr(QTextStream &out, QString &sqlStr)
 {
     int valid_column = rowList.at(0).count();
@@ -590,16 +577,12 @@ void MainWindow::insertSqlStr(QTextStream &out, QString &sqlStr)
             } else {
                 str = QString("'%1', ").arg(value);
             }
-
-            if(j == 0){
-                str.insert(0, "( ");
-            }
-            if(j == valid_column - 1){
-                str.replace(str.length()-2, 2, ");");
-            }
-
             appSql.append(str);
         }
+
+        appSql.insert(0, "(");
+        appSql.replace(appSql.length() - 2, 2, ' ');
+        appSql.append(");");
 
         QString temp = sqlStr;
         temp.append(appSql);
@@ -608,8 +591,6 @@ void MainWindow::insertSqlStr(QTextStream &out, QString &sqlStr)
 
         ui->progressBar->setValue(i+1);
     }
-
-    updatePath();
 }
 
 void MainWindow::insertFMSqlStr(QTextStream &out, QString &sqlStr)
@@ -637,8 +618,6 @@ void MainWindow::insertFMSqlStr(QTextStream &out, QString &sqlStr)
 
         ui->progressBar->setValue(i+1);
     }
-
-    updatePath();
 }
 
 void MainWindow::updateSqlStr(QTextStream &out, QString &sqlStr)
@@ -681,7 +660,6 @@ void MainWindow::updateSqlStr(QTextStream &out, QString &sqlStr)
 
         ui->progressBar->setValue(i+1);
     }
-    updatePath();
 }
 
 void MainWindow::deleteSqlStr(QTextStream &out, QString &sqlStr)
@@ -707,8 +685,6 @@ void MainWindow::deleteSqlStr(QTextStream &out, QString &sqlStr)
 
         ui->progressBar->setValue(i+1);
     }
-
-    updatePath();
 }
 
 void MainWindow::hotSqlStr(QTextStream &out, QString &sqlStr)
@@ -734,8 +710,6 @@ void MainWindow::hotSqlStr(QTextStream &out, QString &sqlStr)
 
         ui->progressBar->setValue(i+1);
     }
-
-    updatePath();
 }
 
 bool MainWindow::initRowValue_excel(QAxObject *work_sheet)
@@ -751,7 +725,7 @@ bool MainWindow::initRowValue_excel(QAxObject *work_sheet)
         {
             QString value =  getCellValue(work_sheet, i, j);
             if(value.isEmpty()){
-                break;
+                value = "NULL";
             }
 
             row.append(value);
@@ -774,7 +748,7 @@ bool MainWindow::initRowValue_excel(QAxObject *work_sheet)
                 text.append(str).append("  ");
             }
 
-            ui->label_output->setText(text);
+            ui->label_output->setText(QString("行：%1 ").arg(i));
             int column = -1;
             if (sheetName.compare("media") == 0
                     || sheetName.compare("media_update_field") == 0
@@ -865,7 +839,7 @@ bool MainWindow::initRowValue_csv(const QString &path)
             foreach (QString str, rowList.at(i)) {
                 text.append(str).append("  ");
             }
-            ui->label_output->setText(text);
+            ui->label_output->setText(QString("行：%1").arg(i+1));
             column = analyzeRowData(rowList.at(i));
             if(column != -1){
                 row = i;
@@ -891,9 +865,9 @@ bool MainWindow::initRowValue_csv(const QString &path)
             foreach (QString str, rowList.at(i)) {
                 text.append(str).append("  ");
             }
-            ui->label_output->setText(text);
+            ui->label_output->setText(QString("行：%1").arg(i+1));
             column = analyzeActorRowData(rowList.at(i));
-            if(column = -1){
+            if(column != -1){
                 row = i;
                 status = false;
                 break;
@@ -1312,132 +1286,3 @@ void MainWindow::setStyleSheet()
 //     this->setStyleSheet(style);
 
      }
-
-
-
-
-
-//QString comboboxValue = ui->comboBox->currentText();   //matchs.keys().indexOf("match") != -1
-//if(comboboxValue.compare("K歌比赛") == 0){
-//    if(matchs.value(work_sheet_name).compare("K歌比赛") == 0){
-//        match(out);
-//    } else {
-//        errorMessageBox("K歌比赛");
-//    }
-//}
-//else if(comboboxValue.compare("MV歌曲") == 0){
-//    if(media.value(work_sheet_name).compare("MV歌曲添加") == 0){
-
-//        QString mediaInsertSql = QString(" INSERT IGNORE INTO `media` "
-//                                        " (`mid`, `serial_id`, `name`, `language`, `type`, "
-//                                        " `singer`, `artist_sid_1`, `artist_sid_2`, `pinyin`, `header`, "
-//                                        " `head`, `words`, `path`, `lyric`, `original_track`, "
-//                                        " `sound_track`, `start_volume_1`, `start_volume_2`, `prelude`, `effect`, "
-//                                        " `version`, `create_time`, `stars`, `hot`, `count`, "
-//                                        " `enabled`, `black`, `match`, `update_time`, `resolution`, "
-//                                        " `quality`, `source`, `rhythm`, `pitch`, `info`, `lang_part`, `desc_count` "
-//                                        " ) VALUES ");
-//        insertSqlStr(out, mediaInsertSql);
-//    }else if(media.value(work_sheet_name).compare("MV歌曲修改") == 0){
-
-//        QString updateSql = QString(" UPDATE `media` SET ");
-//        updateSqlStr(out, updateSql);
-//    }
-//    else if(media.value(work_sheet_name).compare("MV歌曲删除") == 0){
-
-//        QString deleteSql = QString(" DELETE FROM `media` WHERE `mid` ");
-//        deleteSqlStr(out, deleteSql);
-//    }
-//    else
-//        errorMessageBox("MV歌曲");
-//}
-//else if(comboboxValue.compare("MP3歌曲") == 0){
-//    if(mp3.value(work_sheet_name).compare("MP3歌曲添加") == 0){
-
-//        QString mp3InsertSql = QString("INSERT IGNORE INTO `media_music` "
-//                                        " (`mmid`, `serial_id`, `name`, `singer`, `artist_sid_1`, "
-//                                        " `artist_sid_2`, `pinyin`, `header`, `head`, `words`, "
-//                                        " `path`, `lyric`, `prelude`, `create_time`, `count`, "
-//                                        " `enabled`, `update_time`, `has_lyric` "
-//                                        " ) VALUES ");
-//        insertSqlStr(out, mp3InsertSql);
-//    }else if(mp3.value(work_sheet_name).compare("MP3歌曲修改") == 0){
-
-//        QString updateSql = QString(" UPDATE `media_music` SET ");
-//        updateSqlStr(out, updateSql);
-//    }else if(mp3.value(work_sheet_name).compare("MP3歌曲删除") == 0){
-
-//        QString deleteSql = QString(" DELETE FROM `media_music` WHERE `mmid` ");
-//        deleteSqlStr(out, deleteSql);
-//    }
-//    else
-//        errorMessageBox("MP3歌曲");
-//}
-//else if(comboboxValue.compare("歌星") == 0){
-//    if(actor.value(work_sheet_name).compare("歌星添加") == 0){
-
-//        QString actorInsertSql = QString(" INSERT IGNORE INTO `actor` "
-//                                       " (`sid`, `serial_id`, `name`,  `nation`, `sex`, "
-//                                       " `pinyin`, `header`, `head`, `words`, `song_count`, "
-//                                       " `stars`,`count`, `order`, `enabled`, `black`, "
-//                                       " `info`) VALUES ");
-//        insertSqlStr(out, actorInsertSql);
-//    } else if(actor.value(work_sheet_name).compare("歌星修改") == 0){
-
-//        QString updateSql = QString(" UPDATE `actor` SET ");
-//        updateSqlStr(out, updateSql);
-//    } else if(actor.value(work_sheet_name).compare("歌星删除") == 0){
-
-//        QString deleteSql = QString(" DELETE FROM `actor` WHERE `sid` ");
-//        deleteSqlStr(out, deleteSql);
-//    }
-//    else
-//        errorMessageBox("歌星");
-//}
-//else if(comboboxValue.compare("FM歌单") == 0){
-//    if(songlist.value(work_sheet_name).compare("FM歌单") == 0){
-
-//        out << QString("DELETE FROM `songlist`;\n");
-//        QString insertSql = QString("INSERT IGNORE INTO `songlist` "
-//                                    " (`lid`, `serial_id`, `title`, `image`, `type`, `count`, `special`) VALUES "
-//                                    );
-//        insertFMSqlStr(out, insertSql);
-//    }
-//    else if(songlist.value(work_sheet_name).compare("FM歌单列表") == 0){
-
-//        out << QString("DELETE FROM `songlist_detail`;\n");
-//        QString insertSql = QString(" INSERT IGNORE INTO `songlist_detail`(`lid`, `index`, `mid`) VALUES ");
-//        insertSqlStr(out, insertSql);
-//    }
-//    else
-//        errorMessageBox("FM歌单");
-//}
-//else if(comboboxValue.compare("排行旁") == 0){
-
-//    QStringList medialistKeys = medialist.keys();
-//    if(medialistKeys.indexOf(work_sheet_name) == -1){
-//        errorMessageBox("排行榜");
-//    } else {
-
-//        QString deleteSql = QString("DELETE FROM `media_list` where `type` = '%1';\n").arg(work_sheet_name);
-//        out << deleteSql;
-//        QString insertSql = QString(" INSERT IGNORE INTO `media_list`(`type`, `index`, `mid`) VALUES ");
-//        insertSqlStr(out, insertSql);
-//    }
-//} else if(comboboxValue.compare("热度") == 0){
-//    if(hot.value(work_sheet_name).compare("歌曲热歌") == 0){
-
-//        QString updateSql = QString(" UPDATE `media` SET count = count + %1 where mid = %2 ;");
-//        hotSqlStr(out, updateSql);
-//    }
-//    else if(hot.value(work_sheet_name).compare("歌星热歌") == 0){
-
-//        QString updateSql = QString(" UPDATE `actor` SET count = count + %1 where sid = %2 ;");
-//        hotSqlStr(out, updateSql);
-//    }
-//    else
-//        errorMessageBox("热度");
-//}////
-
-//out << "\n";
-//file.close();

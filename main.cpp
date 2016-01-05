@@ -52,8 +52,7 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
 
-    qInstallMessageHandler(outputMessage);
-    qDebug("草泥马 ");
+//    qInstallMessageHandler(outputMessage);
 
     MainWindow w;
     w.show();

@@ -47,7 +47,6 @@ private:
 
     void match(QTextStream &out);
     QStringList splitCSVLine(const QString &lineStr);
-    void updatePath();
 //    int getColumn(QAxObject *work_sheet);
     void insertSqlStr(QTextStream &out, QString &sqlStr);
     void insertFMSqlStr(QTextStream &out, QString &sqlStr);
@@ -72,6 +71,8 @@ private:
 
 
     void outputMessage(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+
+    QString linkSql(QStringList firstRow);
 
 private:
     Ui::MainWindow *ui;
